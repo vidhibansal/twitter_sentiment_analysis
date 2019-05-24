@@ -115,3 +115,40 @@ plt.imshow(wordcloud,interpolation='bilinear')
 plt.axis('off')
 plt.show()
 
+
+def tokens_to_vectors(token, label):
+    x = np.zeros(len(word_index_map) + 1)
+    for t in token:
+        i = word_index_map.get(t) #get the index of the word
+        x[i]+=1  #get the corresponding frequency of the term 
+    x = x/x.sum()    
+    x[-1] = label
+    return x
+
+N = len(t1)
+s = (N, len(word_index_map)+1)
+from psutil import virtual_memory
+mem = virtual_memory()
+data=np.zeros(s,dtype=np.uint8)
+i=0
+for tt in train2['tidy_tweet'][train2['Sentiment']==1]:
+    tokenize = tt.split()
+    xy = tokens_to_vectors(tokenize,1)
+    data[i,:] = xy
+    i +=1
+
+
+
+for tt in train2['tidy_tweet'][train2['Sentiment']==0]:
+    tokenize = tt.split()
+    xy = tokens_to_vectors(tokenize,0)
+    data[i,:] = xy
+    i+=1
+
+np.random.shuffle(data)
+X = data[:,:-1]
+Y = data[:,-1]
+Xtrain = X[:-100,]
+Ytrain = Y[:-100,]
+Xtest = X[-100:,]
+Ytest = Y[-100:,]
