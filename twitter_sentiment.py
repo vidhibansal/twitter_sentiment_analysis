@@ -56,9 +56,35 @@ tokens = []
 for sentence in train2['tidy_tweet']:
     tokens.append(my_tokenizer(sentence))
 
+#Function for reducing length of thw word
+from spellchecker import SpellChecker
+spell = SpellChecker()
+
+def reduce_lengthening(text):
+    pattern = re.compile(r"(.)\1{2,}")
+    return pattern.sub(r"\1\1", text)
+
+from pattern.en import spelling
+
+p1 = []
+w1 = []
+w2 = []
+p2 = []
+for sentence in tokens:
+    for word in sentence:
+        wordz = reduce_lengthening(word)
+        #correct_word = spelling(wordz)
+        if len(wordz)>1:
+            w1.append(spell.correction(wordz))
+        else:
+            w1.append(word)
+    p1.append(w1)
+    w1 = []
+
+
 #POS tagging (required for lemmatization)
 tagged_tokens = []
-for token in tokens:
+for token in p1:
     tagged_tokens.append(pos_tag(token))
 print(tagged_tokens)
 
@@ -82,6 +108,29 @@ for i in range(len(t1)):
 
 print (t1)
 train2['tidy_tweet'] = t1
+
+#Constructing dictionary
+word_index_map ={}
+current_index =0
+words = []
+
+t2 = train2['tidy_tweet']
+for sentence in t2:
+    words.append(sentence.split())
+
+
+for sentence in words:
+    for word in sentence:
+        if word not in word_index_map:
+            word_index_map[word] = current_index
+            current_index +=1
+
+            
+#Manual Corrections
+train2['tidy_tweet'] = train2['tidy_tweet'].str.replace("int","isn't")
+train2['tidy_tweet'] = train2['tidy_tweet'].str.replace("gon","go")
+train2['tidy_tweet'] = train2['tidy_tweet'].str.replace("soo","so")
+train2['tidy_tweet'] = train2['tidy_tweet'].str.replace("noo","no")
 
 #Visualization
 
@@ -116,6 +165,7 @@ plt.axis('off')
 plt.show()
 
 
+#Vectorization
 def tokens_to_vectors(token, label):
     x = np.zeros(len(word_index_map) + 1)
     for t in token:
